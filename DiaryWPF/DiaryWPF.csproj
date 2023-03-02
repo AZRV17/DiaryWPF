@@ -76,6 +76,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Note.cs" />
     <Compile Include="NoteWindow.xaml.cs">
       <DependentUpon>NoteWindow.xaml</DependentUpon>
     </Compile>

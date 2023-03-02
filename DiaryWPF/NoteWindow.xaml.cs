@@ -27,20 +27,8 @@ namespace DiaryWPF
 
         private void save_Button_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow mainWindow = new MainWindow();
-            DateTime selectedDate = calendar.SelectedDate.GetValueOrDefault();
-            string notesText = noteTextBox.Text;
-            mainWindow.notes.Add(selectedDate, notesText);
-            mainWindow.notesTextBox.Text = mainWindow.notes[selectedDate];
-            SaveNotes(mainWindow.notes);
-            mainWindow.LoadNotes();
-            Close();
+            DialogResult = true;
         }
 
-        private void SaveNotes(Dictionary<DateTime, string> notes)
-        {
-            string json = JsonConvert.SerializeObject(notes);
-            File.WriteAllText("C:/Users/alexa/OneDrive/Рабочий стол/Практическая/notes.json", json);
-        }
     }
 }

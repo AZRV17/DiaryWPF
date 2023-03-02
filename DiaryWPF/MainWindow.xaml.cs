@@ -6,90 +6,144 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Newtonsoft.Json;
 
 namespace DiaryWPF
 {
     public partial class MainWindow : Window
     {
-        public Dictionary<DateTime, string> notes;
+        List<Note> notes_1 = new List<Note>();
+
 
         public MainWindow()
         {
             InitializeComponent();
-            LoadNotes();
+            Load();
         }
 
-        public void LoadNotes()
+        public void Save(DateTime date, string title, string desc)
+        {
+            if (title != "")
+            {
+                Note note = new Note
+                {
+                    date = date,
+                    title = title,
+                    description = desc
+                };
+                notes_1.Add(note);
+            }
+            string json = JsonConvert.SerializeObject(notes_1);
+            File.WriteAllText("C:/Users/alexa/OneDrive/Рабочий стол/Практическая/notes_1.json", json);
+        }
+
+        public void Load()
         {
             try
             {
-                string json = File.ReadAllText("C:/Users/alexa/OneDrive/Рабочий стол/Практическая/notes.json");
-                notes = JsonConvert.DeserializeObject<Dictionary<DateTime, string>>(json);
+                var json = File.ReadAllText("C:/Users/alexa/OneDrive/Рабочий стол/Практическая/notes_1.json");
+                notes_1.Clear();
+                notes_1 = JsonConvert.DeserializeObject<List<Note>>(json);
             }
             catch (Exception)
             {
-                notes = new Dictionary<DateTime, string>();
+                notes_1 = new List<Note>();
             }
-        }
-
-        public void SaveNotes()
-        {
-            string json = JsonConvert.SerializeObject(notes);
-            File.WriteAllText("C:/Users/alexa/OneDrive/Рабочий стол/Практическая/notes.json", json);
         }
 
         private void calendar_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
         {
-            DateTime selectedDate = calendar.SelectedDate.GetValueOrDefault();
-            if (notes.ContainsKey(selectedDate))
-            {
-                notesTextBox.Text = notes[selectedDate];
-            }
-            else
-            {
-                notesTextBox.Text = "";
-            }
-        }
+            notesList.Items.Clear();
 
-        private void saveButton_Click(object sender, RoutedEventArgs e)
-        {
-            DateTime selectedDate = calendar.SelectedDate.GetValueOrDefault();
-            string notesText = notesTextBox.Text;
-            if (notes.ContainsKey(selectedDate))
+            foreach (var n in notes_1)
             {
-                notes[selectedDate] = notesText;
+                if (Convert.ToDateTime(calendar.SelectedDate).DayOfYear == n.date.DayOfYear)
+                {
+                    notesList.Items.Add(n.title);
+                }
             }
-            else
-            {
-                notes.Add(selectedDate, notesText);
-            }
-            SaveNotes();
-            MessageBox.Show("Notes saved successfully.");
         }
 
         private void deleteButton_Click(object sender, RoutedEventArgs e)
         {
             DateTime selectedDate = calendar.SelectedDate.GetValueOrDefault();
-            if (notes.ContainsKey(selectedDate))
+
+            foreach (Note note in notes_1)
             {
-                notes.Remove(selectedDate);
-                SaveNotes();
-                MessageBox.Show("Notes deleted successfully.");
-                notesTextBox.Text = "";
-            }
-            else
-            {
-                MessageBox.Show("No notes to delete.");
+                try
+                {
+                    if (notesList.SelectedItem.ToString() == note.title)
+                    {
+                        notesList.Items.Remove(note);
+                        notes_1.Remove(note);
+                        Save(selectedDate, "", "");
+                        notesList.Items.Clear();
+                        break;
+                    }
+                }
+                catch
+                {
+                    notesList.Items.Clear();
+                    break;
+                }
             }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            DateTime selectedDate = calendar.SelectedDate.GetValueOrDefault();
             NoteWindow noteWindow = new NoteWindow();
-            noteWindow.Show();
-            notesTextBox.Text = noteWindow.noteTextBox.Text;
-            LoadNotes();
+            if (noteWindow.ShowDialog() == true)
+            {
+                Save(selectedDate, noteWindow.HeaderNote.Text, noteWindow.descriptionTextBox.Text);
+            }
+        }
+
+        private void notesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            DateTime selectedDate = calendar.SelectedDate.GetValueOrDefault();
+            NoteWindow noteWindow = new NoteWindow();
+            Note new_note = new Note();
+            Note old_note = new Note();
+            bool isTrue = false;
+            foreach (Note note in notes_1) 
+            {
+                try
+                {
+                    if (notesList.SelectedItem.ToString() == note.title)
+                    {
+                        noteWindow.descriptionTextBox.Text = note.description;
+                        noteWindow.HeaderNote.Text = note.title;
+
+                        if (noteWindow.ShowDialog() == true)
+                        {
+                            isTrue = true;
+                            old_note = note;
+
+                            new_note.title = noteWindow.HeaderNote.Text;
+                            new_note.description = noteWindow.descriptionTextBox.Text;
+                            new_note.date = selectedDate;
+                            notesList.Items.Clear();
+                        }
+                        break;
+                    }
+                }
+                catch 
+                {
+                    notesList.Items.Clear();
+                    break;
+                }
+            }
+
+            if (isTrue)
+            {
+                notes_1.Remove(old_note);
+                Save(new_note.date, new_note.title, new_note.description);
+                Load();
+
+                notesList.Items.Add(new_note.title);
+            }
         }
     }
 }

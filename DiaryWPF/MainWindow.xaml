@@ -17,11 +17,11 @@
             <TextBlock Text="Select a date:" Margin="0,0,5,0" VerticalAlignment="Center"/>
             <Calendar x:Name="calendar" DisplayDate="{x:Static sys:DateTime.Now}" SelectedDatesChanged="calendar_SelectedDatesChanged"/>
         </StackPanel>
-        <TextBox x:Name="notesTextBox" Grid.Row="1" Margin="5"/>
         <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="5">
-            <Button Content="Save" Click="saveButton_Click"/>
             <Button Content="Delete" Click="deleteButton_Click"/>
+            <Button x:Name="Button" Content="Add" Click="Button_Click"/>
         </StackPanel>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="84,0,0,0" Grid.Row="2" VerticalAlignment="Center" Click="Button_Click"/>
+        <ListView x:Name="notesList" Grid.Row="1" Margin="10" SelectionChanged="notesList_SelectionChanged">
+        </ListView>
     </Grid>
 </Window>
